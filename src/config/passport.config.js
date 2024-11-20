@@ -12,8 +12,6 @@ const LocalStrategy = local.Strategy;
 const GoogleStrategy = google.Strategy;
 const JWTStrategy = jwt.Strategy;
 const ExtractJWT = jwt.ExtractJwt;
-const clientIdGoogle = process.env.CLIENT_ID_GOOGLE; 
-const clientSecretGoogle = process.env.CLIENT_SECRET_GOOGLE;
 
 // Función que inicializa todas las estrategias
 export const initializePassport = () => {
@@ -90,8 +88,8 @@ export const initializePassport = () => {
     "google",
     new GoogleStrategy(
       {
-        clientID: clientIdGoogle,
-        clientSecret: clientSecretGoogle,
+        clientID: "714502033284-ql36673e84d7r1bn7ohbu1fftlqmspec.apps.googleusercontent.com",
+        clientSecret: "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",
         callbackURL: "http://localhost:8080/api/sessions/google",
       },
       async (accessToken, refreshToken, profile, cb) => {

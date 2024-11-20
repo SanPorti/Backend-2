@@ -1,11 +1,9 @@
 import mongoose from "mongoose";
 
-const uriMongo = process.env.URI_MONGO;
-
 //Conexion a BD
 export const connectMongoDB = async () => {
   try {
-      mongoose.connect(uriMongo)
+      mongoose.connect("mongodb+srv://admin:12345@cluster0.etdwv.mongodb.net/")
       console.log("MongoDB conectado");
   } catch (error) {
     console.log(`Error: ${error}`);
