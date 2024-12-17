@@ -5,14 +5,20 @@ import jwt from "passport-jwt";
 import { userDao } from "../dao/mongo/user.dao.js";
 import { createHash, isValidPassword } from "../utils/hashPassword.js";
 import { cookieExtractor } from "../utils/cookieExtractor.js";
-// import { createToken } from "../utils/jwt.js";
+import { createToken } from "../utils/jwt.js";
 import { cartDao } from "../dao/mongo/cart.dao.js";
-
+import dotenv from "dotenv";
 
 const LocalStrategy = local.Strategy;
 const GoogleStrategy = google.Strategy;
 const JWTStrategy = jwt.Strategy;
 const ExtractJWT = jwt.ExtractJwt;
+
+dotenv.config();
+const googleClientId = process.env.GOOGLE_CLIENTID;
+const goolgeClientSecret = process.env.GOOGLE_CLIENTSECRET;
+const jwtSecret = process.env.SECRETORKEY;
+
 
 // Función que inicializa todas las estrategias
 export const initializePassport = () => {
@@ -23,22 +29,21 @@ export const initializePassport = () => {
 
       try {
         const { first_name, last_name, age, role } = req.body;
+        
         // validar si el usuario existe
         const user = await userDao.getByEmail(username);
 
-        // Si el usuario existe, retornamos un mensaje de error
-        if (user) return done(null, false, { message: "El usuario ya existe" }); // done es equivalente a un next() en los middlewares
+        if (user) return done(null, false, { message: "El usuario ya existe" }); 
 
         // Creamos un carrito nuevo para el usuario
         const cart = await cartDao.create();
 
-        // Si el usuario no existe creamos un nuevo usuario
         const newUser = {
           first_name,
           last_name,
           age,
           email: username,
-          password: createHash(password), // Encriptar el password
+          password: createHash(password),
           role: role ? role : "user",
           cart: cart._id,
         };
@@ -58,7 +63,6 @@ export const initializePassport = () => {
       try {
         const user = await userDao.getByEmail(username);
 
-        // Valida si existe el usuario o si el password no es el mismo que el que tenemos registrado en la base de datos
         if (!user || !isValidPassword(password, user.password)) {
           return done(null, false, { message: "Email o contraseña no válido" });
         }
@@ -89,8 +93,8 @@ export const initializePassport = () => {
     "google",
     new GoogleStrategy(
       {
-        clientID: "714502033284-ql36673e84d7r1bn7ohbu1fftlqmspec.apps.googleusercontent.com",
-        clientSecret: "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",
+        clientID: googleClientId,
+        clientSecret: goolgeClientSecret,
         callbackURL: "http://localhost:8080/api/sessions/google",
       },
       async (accessToken, refreshToken, profile, cb) => {
@@ -105,12 +109,10 @@ export const initializePassport = () => {
 
           const existingUser = await userDao.getByEmail(user.email);
 
-          // Si existe el usuario
           if (existingUser) {
             return cb(null, existingUser);
           }
 
-          // En caso que el usuario con ese email no este registrado, lo hacemos en este paso
           const newUser = await userDao.create(user);
           return cb(null, newUser);
         } catch (error) {
@@ -127,7 +129,7 @@ export const initializePassport = () => {
     new JWTStrategy(
       {
         jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
-        secretOrKey: "ClaveSecreta",
+        secretOrKey: jwtSecret,
       },
       async (jwk_payload, done) => {
         try {
