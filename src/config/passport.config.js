@@ -5,7 +5,6 @@ import jwt from "passport-jwt";
 import { userDao } from "../dao/mongo/user.dao.js";
 import { createHash, isValidPassword } from "../utils/hashPassword.js";
 import { cookieExtractor } from "../utils/cookieExtractor.js";
-import { createToken } from "../utils/jwt.js";
 import { cartDao } from "../dao/mongo/cart.dao.js";
 import dotenv from "dotenv";
 
@@ -16,7 +15,7 @@ const ExtractJWT = jwt.ExtractJwt;
 
 dotenv.config();
 const googleClientId = process.env.GOOGLE_CLIENTID;
-const goolgeClientSecret = process.env.GOOGLE_CLIENTSECRET;
+const googleClientSecret = process.env.GOOGLE_CLIENTSECRET;
 const jwtSecret = process.env.SECRETORKEY;
 
 
@@ -94,13 +93,12 @@ export const initializePassport = () => {
     new GoogleStrategy(
       {
         clientID: googleClientId,
-        clientSecret: goolgeClientSecret,
+        clientSecret: googleClientSecret,
         callbackURL: "http://localhost:8080/api/sessions/google",
       },
       async (accessToken, refreshToken, profile, cb) => {
         try {
           const { id, name, emails } = profile;
-
           const user = {
             first_name: name.givenName,
             last_name: name.familyName,
@@ -116,6 +114,7 @@ export const initializePassport = () => {
           const newUser = await userDao.create(user);
           return cb(null, newUser);
         } catch (error) {
+          console.error("error", error);
           return cb(error);
         }
       }
